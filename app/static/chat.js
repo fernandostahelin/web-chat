@@ -167,10 +167,14 @@ function renderMessage(message) {
     messageContainer.appendChild(timestamp);
   }
 
-  // Check if the message was sent by the current user using the unique ID
-  if (message.id && myMessageIds.has(message.id)) {
+  // Determine if the message was sent by the current user
+  // Assuming you have access to the current user's session_id in the frontend
+  const currentSessionId = getCurrentSessionId(); // Implement this function based on your setup
+
+  if (message.session_id === currentSessionId) {
     messageContainer.classList.add("sent");
-    myMessageIds.delete(message.id); // Remove the ID after marking
+  } else {
+    messageContainer.classList.add("received");
   }
 
   // Append the message container to the messages div
