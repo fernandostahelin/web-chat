@@ -13,7 +13,10 @@ def index():
 
 @socketio.on('message')
 def handle_message(message):
-    # message is expected to be a dictionary with 'text' and 'id'
+    """
+    Handle incoming text messages.
+    Expects a dictionary with 'text' and 'id'.
+    """
     text = message.get('text')
     message_id = message.get('id')  # Unique identifier for the message
 
@@ -28,7 +31,10 @@ def handle_message(message):
 
 @socketio.on('image')
 def handle_image(message):
-    # message is expected to be a dictionary with 'image' (Base64 string) and 'id'
+    """
+    Handle incoming image messages.
+    Expects a dictionary with 'image' (Base64 string) and 'id'.
+    """
     image_data = message.get('image')
     message_id = message.get('id')  # Unique identifier for the message
 

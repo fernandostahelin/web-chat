@@ -53,4 +53,29 @@ body {
     font-size: 0.8em;
     color: #6c757d;
     text-align: right;
+    display: block; /* Ensure timestamp is on a new line */
+    margin-top: 5px; /* Add space above timestamp */
+}
+
+/* Change timestamp color to white for sent messages */
+.message-container.sent .timestamp {
+    color: white;
+}
+
+/* Optional: Hover effect for images */
+.message-image:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+    transition: all 0.2s;
+}
+
+/* Responsive Video and Canvas in Modal */
+#webcamVideo {
+    max-height: 60vh;
+}
+
+@media (max-width: 768px) {
+    .chat-messages {
+        height: 300px;
+    }
 }

@@ -1,148 +1,204 @@
 const socket = io();
-const messagesDiv = document.getElementById('messages');
-const messageInput = document.getElementById('message-input');
-const cameraButton = document.getElementById('camera-button');
-const galleryButton = document.getElementById('gallery-button');
-const cameraInput = document.getElementById('camera-input');
-const galleryInput = document.getElementById('gallery-input');
+
+// DOM elements
+const chatContainer = document.querySelector(".chat-container");
+const messagesDiv = document.getElementById("messages");
+const messageInput = document.getElementById("message-input");
+const cameraButton = document.getElementById("camera-button");
+const galleryButton = document.getElementById("gallery-button");
+const galleryInput = document.getElementById("gallery-input");
+const sendButton = document.getElementById("send-button");
+
+// Elements for webcam modal
+const webcamModalElement = document.getElementById("webcamModal");
+let webcamModal;
+if (webcamModalElement) {
+  webcamModal = new bootstrap.Modal(webcamModalElement);
+}
+const webcamVideo = document.getElementById("webcamVideo");
+const webcamCanvas = document.getElementById("webcamCanvas");
+const captureButton = document.getElementById("captureButton");
 
 // Keep track of sent messages using unique identifiers
 let myMessageIds = new Set();
 
 // Function to generate a simple unique ID for each message
 function generateMessageId() {
-    return '_' + Math.random().toString(36).substr(2, 9);
+  return "_" + Math.random().toString(36).slice(2, 9);
 }
 
-// Event listener for camera button
-cameraButton.addEventListener('click', () => {
-    cameraInput.click();
+// Event listener for camera button (opens webcam modal)
+cameraButton.addEventListener("click", () => {
+  startWebcam();
 });
 
 // Event listener for gallery button
-galleryButton.addEventListener('click', () => {
-    galleryInput.click();
-});
-
-// Handle image selection from camera
-cameraInput.addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        sendImage(file);
-    }
-    // Reset the input value to allow re-uploading the same image if needed
-    cameraInput.value = '';
+galleryButton.addEventListener("click", () => {
+  galleryInput.click();
 });
 
 // Handle image selection from gallery
-galleryInput.addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        sendImage(file);
-    }
-    // Reset the input value to allow re-uploading the same image if needed
-    galleryInput.value = '';
+galleryInput.addEventListener("change", function (event) {
+  const file = event.target.files[0];
+  if (file && file.type.startsWith("image/")) {
+    sendImage(file);
+  }
+  // Reset the input value to allow re-uploading the same image if needed
+  galleryInput.value = "";
 });
 
 // Function to convert image file to Base64 and send
 function sendImage(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const imageBase64 = e.target.result; // This is the base64 string
-        const messageId = generateMessageId();
-        socket.emit('image', { image: imageBase64, id: messageId });
-        myMessageIds.add(messageId);
-    };
-    reader.readAsDataURL(file);
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const imageBase64 = e.target.result; // This is the base64 string
+    const messageId = generateMessageId();
+    socket.emit("image", { image: imageBase64, id: messageId });
+    myMessageIds.add(messageId);
+  };
+  reader.readAsDataURL(file);
 }
 
-// Listen for 'message' events
-socket.on('message', function(message) {
-    renderMessage(message);
+// Function to start the webcam
+function startWebcam() {
+  if (!webcamModal) {
+    console.error("Webcam modal not found!");
+    return;
+  }
+
+  // Show the webcam modal
+  webcamModal.show();
+
+  // Access the webcam
+  navigator.mediaDevices
+    .getUserMedia({ video: true })
+    .then((stream) => {
+      webcamVideo.srcObject = stream;
+      webcamVideo.play();
+    })
+    .catch((err) => {
+      console.error("Error accessing webcam: ", err);
+      alert("Unable to access the webcam. Please check your permissions.");
+      webcamModal.hide();
+    });
+}
+
+// Event listener for capture button in modal
+captureButton.addEventListener("click", () => {
+  // Draw the video frame to the canvas
+  webcamCanvas.width = webcamVideo.videoWidth;
+  webcamCanvas.height = webcamVideo.videoHeight;
+  const context = webcamCanvas.getContext("2d");
+  context.drawImage(webcamVideo, 0, 0, webcamCanvas.width, webcamCanvas.height);
+
+  // Convert the canvas to a Base64 image
+  const imageBase64 = webcamCanvas.toDataURL("image/png");
+
+  // Send the captured image
+  const messageId = generateMessageId();
+  socket.emit("image", { image: imageBase64, id: messageId });
+  myMessageIds.add(messageId);
+
+  // Stop all video streams to free the webcam
+  webcamVideo.srcObject.getTracks().forEach((track) => track.stop());
+
+  // Hide the webcam modal
+  webcamModal.hide();
 });
 
-// Listen for 'image' events
-socket.on('image', function(message) {
-    renderMessage(message);
+// Listen for 'message' and 'image' events from the server
+socket.on("message", function (message) {
+  renderMessage(message);
+});
+
+socket.on("image", function (message) {
+  renderMessage(message);
 });
 
 // Function to render messages and images
 function renderMessage(message) {
-    // Create a container div for the message
-    const messageContainer = document.createElement('div');
-    messageContainer.classList.add('message-container');
+  // Create a container div for the message
+  const messageContainer = document.createElement("div");
+  messageContainer.classList.add("message-container");
 
-    // Determine if the message is text or image
-    if (message.text) {
-        // Text message
-        const messageElement = document.createElement('p');
-        messageElement.textContent = message.text;
-        messageElement.classList.add('message-text');
+  // Determine if the message is text or image
+  if (message.text) {
+    // Text message
+    const messageElement = document.createElement("p");
+    messageElement.textContent = message.text;
+    messageElement.classList.add("message-text");
 
-        // Create a span for the timestamp
-        const timestamp = document.createElement('span');
-        timestamp.classList.add('timestamp');
-        const localTime = new Date(message.timestamp);
-        if (isNaN(localTime)) {
-            timestamp.textContent = 'Invalid Date';
-        } else {
-            timestamp.textContent = localTime.toLocaleString();
-        }
-
-        // Append timestamp to the message
-        messageElement.appendChild(timestamp);
-        messageContainer.appendChild(messageElement);
+    // Create a span for the timestamp
+    const timestamp = document.createElement("span");
+    timestamp.classList.add("timestamp");
+    const localTime = new Date(message.timestamp);
+    if (isNaN(localTime)) {
+      timestamp.textContent = "Invalid Date";
+    } else {
+      timestamp.textContent = localTime.toLocaleString();
     }
 
-    if (message.image) {
-        // Image message
-        const imageElement = document.createElement('img');
-        imageElement.src = message.image;
-        imageElement.alt = 'User Image';
-        imageElement.classList.add('message-image');
+    // Append timestamp to the message
+    messageElement.appendChild(timestamp);
+    messageContainer.appendChild(messageElement);
+  }
 
-        // Create a span for the timestamp
-        const timestamp = document.createElement('span');
-        timestamp.classList.add('timestamp');
-        const localTime = new Date(message.timestamp);
-        if (isNaN(localTime)) {
-            timestamp.textContent = 'Invalid Date';
-        } else {
-            timestamp.textContent = localTime.toLocaleString();
-        }
+  if (message.image) {
+    // Image message
+    const imageElement = document.createElement("img");
+    imageElement.src = message.image;
+    imageElement.alt = "User Image";
+    imageElement.classList.add("message-image");
 
-        // Append timestamp to the image
-        imageElement.appendChild(timestamp);
-        messageContainer.appendChild(imageElement);
+    // Append image to the message container
+    messageContainer.appendChild(imageElement);
+
+    // Create a span for the timestamp
+    const timestamp = document.createElement("span");
+    timestamp.classList.add("timestamp");
+    const localTime = new Date(message.timestamp);
+    if (isNaN(localTime)) {
+      timestamp.textContent = "Invalid Date";
+    } else {
+      timestamp.textContent = localTime.toLocaleString();
     }
 
-    // Check if the message was sent by the current user using the unique ID
-    if (message.id && myMessageIds.has(message.id)) {
-        messageContainer.classList.add('sent');
-        myMessageIds.delete(message.id); // Remove the ID after marking
-    }
+    // Append timestamp below the image
+    messageContainer.appendChild(timestamp);
+  }
 
-    // Append the message container to the messages div
-    messagesDiv.appendChild(messageContainer);
+  // Check if the message was sent by the current user using the unique ID
+  if (message.id && myMessageIds.has(message.id)) {
+    messageContainer.classList.add("sent");
+    myMessageIds.delete(message.id); // Remove the ID after marking
+  }
 
-    // Scroll to the bottom of the messages container
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  // Append the message container to the messages div
+  messagesDiv.appendChild(messageContainer);
+
+  // Scroll to the bottom of the messages container
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 // Function to send text messages
 function sendMessage() {
-    const messageText = messageInput.value.trim();
-    if (messageText) {
-        const messageId = generateMessageId(); // Generate a unique ID for the message
-        socket.emit('message', { text: messageText, id: messageId });
-        myMessageIds.add(messageId); // Track sent message by ID
-        messageInput.value = '';
-    }
+  const messageText = messageInput.value.trim();
+  if (messageText) {
+    const messageId = generateMessageId(); // Generate a unique ID for the message
+    socket.emit("message", { text: messageText, id: messageId });
+    myMessageIds.add(messageId); // Track sent message by ID
+    messageInput.value = "";
+  }
 }
 
+// Event listener for Send button
+sendButton.addEventListener("click", () => {
+  sendMessage();
+});
+
 // Add event listener for Enter key to send messages
-messageInput.addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
-        sendMessage();
-    }
+messageInput.addEventListener("keypress", function (event) {
+  if (event.key === "Enter") {
+    sendMessage();
+  }
 });

@@ -15,5 +15,4 @@ python-engineio==4.9.1
 python-socketio==5.11.4
 simple-websocket==1.0.0
 Werkzeug==3.0.4
-wheel @ file:///opt/homebrew/Cellar/python%403.12/3.12.5/libexec/wheel-0.44.0-py3-none-any.whl#sha256=8d8a590e50bda8422000110e90bc730ebfcd8363d2de80793ac819b7f252e97d
 wsproto==1.2.0
