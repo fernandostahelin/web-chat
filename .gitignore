@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 pyvenv.cfg
+credentials.env
 
 # C extensions
 *.so
