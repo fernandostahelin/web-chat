@@ -1,0 +1,56 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #ffffff;
+}
+
+/* Container for each message */
+.message-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+/* Styling individual text messages */
+.message-text {
+    background-color: #e2e6ea;
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 80%;
+    word-wrap: break-word;
+    position: relative;
+}
+
+/* Styling individual image messages */
+.message-image {
+    max-width: 80%;
+    height: auto;
+    border-radius: 15px;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+/* Align messages from current user to the right */
+.message-container.sent .message-text {
+    background-color: #007bff;
+    color: white;
+    margin-left: auto;
+}
+
+.message-container.sent .message-image {
+    margin-left: auto;
+}
+
+/* Timestamp styling */
+.timestamp {
+    font-size: 0.8em;
+    color: #6c757d;
+    text-align: right;
+}
