@@ -4,8 +4,6 @@ eventlet.monkey_patch()
 
 import logging
 
-logging.getLogger("engineio").setLevel(logging.DEBUG)
-logging.getLogger("socketio").setLevel(logging.DEBUG)
 import os
 from dotenv import load_dotenv
 
