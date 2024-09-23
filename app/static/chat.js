@@ -206,3 +206,20 @@ messageInput.addEventListener("keypress", function (event) {
     sendMessage();
   }
 });
+
+let currentSessionId = null;
+
+// Add this at the beginning of your file, after initializing the socket
+socket.on('session', function(data) {
+    currentSessionId = data.session_id;
+    console.log('Session ID received:', currentSessionId);
+});
+
+// Implement the getCurrentSessionId function
+function getCurrentSessionId() {
+    if (currentSessionId === null) {
+        console.error('Session ID not set. User might not be properly connected.');
+        return 'unknown';
+    }
+    return currentSessionId;
+}
