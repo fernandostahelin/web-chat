@@ -1,9 +1,10 @@
+import eventlet
+
 eventlet.monkey_patch()
 
 import logging
 import os
 
-import eventlet
 from dotenv import load_dotenv
 
 from app.app import app, socketio
