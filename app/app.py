@@ -1,14 +1,17 @@
-import requests
-import json
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
-from config import Config
-from datetime import datetime, timezone
-from pymongo import MongoClient
-import uuid  # For generating unique session IDs if needed
 import logging
-import os
+import uuid  # For generating unique session IDs if needed
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+from flask import Flask, render_template
+from flask_socketio import SocketIO  # Import request from flask_socketio
+from flask_socketio import emit, request
+from pymongo import MongoClient
+from pymongo import collection as pymongo_collection  # Import specific types
+from pymongo import database
 from pymongo.errors import ServerSelectionTimeoutError
+
+from config import Config
 
 # Configure Logging
 logging.basicConfig(level=logging.DEBUG)  # Set to DEBUG for detailed logs
@@ -23,77 +26,93 @@ socketio = SocketIO(app, async_mode="eventlet", cors_allowed_origins="*")
 
 # Add a route for the homepage
 @app.route("/")
-def index():
+def index() -> str:
     return render_template("index.html")
 
 
-client = None
-db = None
-collection = None
+client: Optional[MongoClient] = None
+db: Optional[database.Database] = None  # Use the specific type for database
+collection: Optional[pymongo_collection.Collection] = (
+    None  # Use the specific type for collection
+)
 
 
-def get_db():
+def get_db() -> Optional[pymongo_collection.Collection]:  # Update return type
     global client, db, collection
     if client is None:
         try:
             client = MongoClient(Config.MONGO_URI)
             client.admin.command("ping")
             logger.info("Successfully connected to MongoDB Atlas!")
-            db = client[Config.MONGO_DB]
-            collection = db[Config.MONGO_COLLECTION]
+            db_name: Optional[str] = Config.MONGO_DB
+            collection_name: Optional[str] = Config.MONGO_COLLECTION
+            if db_name and collection_name:
+                db = client[db_name]
+                collection = db[collection_name]
+            else:
+                logger.error(
+                    "Database or collection name is not set\
+                          in the configuration."
+                )
         except ServerSelectionTimeoutError:
             logger.error(
-                "Unable to connect to MongoDB Atlas. Will retry on next request."
+                "Unable to connect to MongoDB Atlas.\
+                    Will retry on next request."
             )
     return collection
 
 
 @app.before_request
-def before_request():
+def before_request() -> None:
     get_db()
 
 
-# Optional: If you don't have user sessions set up, you can generate a unique session ID per connection
-connected_users = {}
+connected_users: Dict[str, str] = {}
 
 
 # Move SocketIO initialization here, after all routes are defined
 @socketio.on("connect")
-def handle_connect():
+def handle_connect() -> None:
     session_id = str(uuid.uuid4())
-    connected_users[request.sid] = session_id
+    connected_users[request.sid] = session_id  # request.sid is now recognized
     logger.info(f"User connected: {session_id}")
     # Send the session ID to the client
     emit('session', {'session_id': session_id})
 
 
 @socketio.on("disconnect")
-def handle_disconnect():
-    session_id = connected_users.pop(request.sid, None)
+def handle_disconnect() -> None:
+    session_id = connected_users.pop(
+        request.sid, None
+    )  # request.sid is now recognized
     logger.info(f"User disconnected: {session_id}")
 
 
 @socketio.on("message")
-def handle_message(message):
+def handle_message(message: Dict[str, Any]) -> None:
     """
     Handle incoming text messages.
     Expects a dictionary with 'text' and 'id'.
     """
-    text = message.get("text")
-    message_id = message.get("id")  # Unique identifier for the message
+    text: Optional[str] = message.get("text")
+    message_id: Optional[str] = message.get(
+        "id"
+    )  # Unique identifier for the message
 
     if not text:
         logger.warning("Received empty text message.")
         return  # Optionally handle empty messages
 
     # Generate current UTC timestamp in ISO 8601 format
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp: str = datetime.now(timezone.utc).isoformat()
 
     # Retrieve the session_id for the current user
-    session_id = connected_users.get(request.sid, "anonymous")
+    session_id: str = connected_users.get(
+        request.sid, "anonymous"
+    )  # request.sid is now recognized
 
     # Prepare the message document
-    message_doc = {
+    message_doc: Dict[str, Any] = {
         "message_id": message_id,
         "session_id": session_id,
         "message_type": "text",
@@ -123,26 +142,30 @@ def handle_message(message):
 
 
 @socketio.on("image")
-def handle_image(message):
+def handle_image(message: Dict[str, Any]) -> None:
     """
     Handle incoming image messages.
     Expects a dictionary with 'image' (Base64 string) and 'id'.
     """
-    image_data = message.get("image")
-    message_id = message.get("id")  # Unique identifier for the message
+    image_data: Optional[str] = message.get("image")
+    message_id: Optional[str] = message.get(
+        "id"
+    )  # Unique identifier for the message
 
     if not image_data:
         logger.warning("Received empty image data.")
         return  # Optionally handle empty image data
 
     # Generate current UTC timestamp in ISO 8601 format
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp: str = datetime.now(timezone.utc).isoformat()
 
     # Retrieve the session_id for the current user
-    session_id = connected_users.get(request.sid, "anonymous")
+    session_id: str = connected_users.get(
+        request.sid, "anonymous"
+    )  # request.sid is now recognized
 
     # Prepare the image document
-    image_doc = {
+    image_doc: Dict[str, Any] = {
         "message_id": message_id,
         "session_id": session_id,
         "message_type": "image",
