@@ -1,15 +1,9 @@
-import eventlet
-
-eventlet.monkey_patch()
-
 import logging
 import os
 
 from dotenv import load_dotenv
 
 from app.app import app, socketio
-
-
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -26,12 +20,4 @@ except Exception as e:
     logger.error(f"Error importing app: {e}", exc_info=True)
     raise
 
-if __name__ == "__main__":
-    try:
-        host: str = os.getenv("FLASK_HOST", "0.0.0.0")
-        port: int = int(os.getenv("FLASK_PORT", 5000))
-
-        logger.info(f"Starting SocketIO server on {host}:{port}...")
-        socketio.run(app, host=host, port=port)
-    except Exception as e:
-        logger.error(f"Error running the app: {e}", exc_info=True)
+# Remove the if __name__ == "__main__" block
