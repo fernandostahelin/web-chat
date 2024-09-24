@@ -1,6 +1,5 @@
-const socket = io("http://ec2-52-201-225-182.compute-1.amazonaws.com:8000", {
-  transports: ["websocket", "polling"],
-});
+const socket = io();
+
 
 // DOM elements
 const chatContainer = document.querySelector(".chat-container");
