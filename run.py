@@ -29,6 +29,6 @@ if __name__ == "__main__":
         port = int(os.getenv("FLASK_PORT", 5000))
 
         logger.info(f"Starting SocketIO server on {host}:{port}...")
-        socketio.run(app, host=host, port=port, debug=True, use_reloader=False)
+        socketio.run(app, host=host, port=port)
     except Exception as e:
         logger.error(f"Error running the app: {e}", exc_info=True)
