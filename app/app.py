@@ -29,6 +29,10 @@ socketio = SocketIO(app, async_mode="eventlet", cors_allowed_origins="*")
 def index() -> str:
     return render_template("index.html")
 
+# Add a route for Socket.IO
+@app.route("/socket.io/")
+def socket_io():
+    return "", 404  # This is just to ensure the route exists
 
 client: Optional[MongoClient] = None
 db: Optional[database.Database] = None  # Use the specific type for database
