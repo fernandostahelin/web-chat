@@ -1,3 +1,5 @@
+eventlet.monkey_patch()
+
 import logging
 import os
 
@@ -6,7 +8,6 @@ from dotenv import load_dotenv
 
 from app.app import app, socketio
 
-eventlet.monkey_patch()
 
 
 logging.basicConfig(
