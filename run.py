@@ -20,4 +20,5 @@ except Exception as e:
     logger.error(f"Error importing app: {e}", exc_info=True)
     raise
 
-# Remove the if __name__ == "__main__" block
+# Expose the SocketIO instance for Gunicorn
+# No need for socketio.run() here when using Gunicorn
