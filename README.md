@@ -44,12 +44,12 @@ This is a real-time web chat application built using Flask, Flask-SocketIO, and 
     ```env
     FLASK_DEBUG=False
     MONGO_USER=webchat
-    MONGO_PASSWORD=dsWcIXV3QfpsZ2Km
+    MONGO_PASSWORD=
     MONGO_DB=messages_db
     MONGO_COLLECTION=chat-messages
     FLASK_HOST=127.0.0.1
     FLASK_PORT=5000
-    MONGO_URI="mongodb+srv://webchat:dsWcIXV3QfpsZ2Km@web-chat-app.ces2z.mongodb.net/?retryWrites=true&w=majority&appName=web-chat-app"
+    MONGO_URI=
     ```
 
 ## Running the Application
